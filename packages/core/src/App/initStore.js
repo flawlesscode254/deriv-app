@@ -62,6 +62,12 @@ const initStore = (notification_messages, accounts) => {
     // start timers to measure performance
     startPerformanceMetrics(url_query_string, url_params);
 
+    // Apply app_id from URL if provided (e.g. ?app_id=12345)
+    const passed_app_id = url_params.get('app_id');
+    if (passed_app_id) {
+        localStorage.setItem('config.app_id', passed_app_id);
+    }
+
     if (url_params.get('action') === 'signup') {
         // If a user comes from the signup process,
         // we need to give him a clean setup
