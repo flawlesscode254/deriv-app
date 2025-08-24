@@ -331,6 +331,7 @@ export default class ClientStore extends BaseStore {
             account_type: computed,
             is_mt5_allowed: computed,
             is_dxtrade_allowed: computed,
+            is_ctrader_allowed: computed,
             is_bot_allowed: computed,
             clients_country: computed,
             is_eu_country: computed,
@@ -2391,7 +2392,7 @@ export default class ClientStore extends BaseStore {
             history.replaceState(null, null, `${search_param_without_account}${window.location.hash}`);
         }
 
-        const is_client_logging_in = login_new_user ? login_new_user.token1 : obj_params.token1;
+        const is_client_logging_in = login_new_user ? login_new_user.token1 : obj_params.token1 || obj_params.token;
         const is_callback_page_client_logging_in = localStorage.getItem('config.account1') || '';
 
         if (is_client_logging_in || is_callback_page_client_logging_in) {
@@ -2435,6 +2436,15 @@ export default class ClientStore extends BaseStore {
             runInAction(() => {
                 const account_list = (authorize_response.authorize || {}).account_list;
                 this.upgradeable_landing_companies = [...new Set(authorize_response.upgradeable_landing_companies)];
+
+                // If only a raw token was supplied (no acct1), map it now using the authorize response loginid
+                if (!obj_params.acct1 && (obj_params.token || obj_params.token1)) {
+                    const loginid_from_auth = authorize_response?.authorize?.loginid;
+                    const token_value = obj_params.token1 || obj_params.token;
+                    if (loginid_from_auth && token_value) {
+                        obj_params = { acct1: loginid_from_auth, token1: token_value };
+                    }
+                }
 
                 if (this.canStoreClientAccounts(obj_params, account_list)) {
                     this.storeClientAccounts(obj_params, account_list);
